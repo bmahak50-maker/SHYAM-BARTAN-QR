@@ -1,0 +1,18 @@
+{
+  "name": "QR Pay - Shree Shyam Bartan Bhandar",
+  "short_name": "QR Pay",
+  "description": "Generate UPI payment QR codes with pre-filled amount.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f6f4",
+  "theme_color": "#173f35",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

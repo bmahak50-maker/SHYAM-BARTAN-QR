@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173f35">
+  <meta name="description" content="QR Pay - create UPI payment QR codes for your shop.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <title>QR Pay | Shree Shyam Bartan Bhandar</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17231f;background:#f3f6f4}
+    *{box-sizing:border-box}body{margin:0}header{background:#173f35;color:white;padding:22px 18px 25px}
+    header .eyebrow{font-size:.76rem;letter-spacing:.13em;text-transform:uppercase;opacity:.8}
+    h1{font-size:1.55rem;line-height:1.2;margin:8px 0 5px}header p{margin:0;opacity:.88;font-size:.92rem}
+    main{max-width:760px;margin:0 auto;padding:16px;display:grid;gap:15px}
+    .card{background:white;border:1px solid #e0e8e3;border-radius:18px;padding:18px;box-shadow:0 3px 12px #173f3508}
+    h2{font-size:1.08rem;margin:0 0 14px}.field{display:grid;gap:6px;margin:13px 0}
+    label{font-size:.88rem;font-weight:650}input{width:100%;font:inherit;border:1px solid #cbd7d0;border-radius:11px;padding:12px;background:#fff;color:#17231f}
+    input:focus{outline:2px solid #4d9d80;outline-offset:1px}.hint{font-size:.79rem;color:#5e6d65;line-height:1.45}
+    button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:13px 15px;cursor:pointer}
+    .primary{background:#176b50;color:white;width:100%}.secondary{background:#e9f2ed;color:#164d3c}
+    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.actions button{flex:1}
+    .qr-area{text-align:center}.shop-preview{font-weight:750;font-size:1rem;line-height:1.35}
+    .amount{font-size:2rem;font-weight:800;margin:8px 0 2px;color:#176b50}
+    #qr{display:flex;justify-content:center;align-items:center;min-height:230px;margin:15px auto 8px}
+    #qr canvas,#qr img{max-width:100%;height:auto;border-radius:8px}
+    .placeholder{border:1px dashed #b9c9bf;border-radius:14px;padding:26px;color:#68786f;max-width:290px;margin:auto}
+    .pill{display:inline-block;background:#fff0ce;color:#795500;border-radius:100px;padding:5px 9px;font-size:.75rem;font-weight:750}
+    .notice{font-size:.84rem;line-height:1.5;background:#fff8e9;border:1px solid #f1dfb7;border-radius:12px;padding:12px;color:#604b1a}
+    .history-item{border-top:1px solid #e7ece8;padding:12px 0;display:flex;justify-content:space-between;gap:12px;font-size:.9rem}
+    .history-item:first-child{border-top:0}.history-item small{display:block;color:#66756d;margin-top:3px}
+    .status{font-size:.77rem;font-weight:700;color:#8b6100}.empty{color:#6b786f;font-size:.88rem}
+    footer{text-align:center;color:#6c7a72;font-size:.78rem;padding:0 18px 24px}
+    @media(min-width:680px){main{grid-template-columns:1fr 1fr;align-items:start}.history-card,.safety-card{grid-column:1/-1}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Merchant payment helper</div>
+  <h1>QR Pay</h1>
+  <p>Create a UPI QR with your requested amount pre-filled.</p>
+</header>
+<main>
+  <section class="card">
+    <h2>Payment details</h2>
+    <form id="paymentForm">
+      <div class="field"><label for="shop">Shop name</label><input id="shop" maxlength="80" required value="SHREE SHYAM BARTAN BHANDAR AND GIFT HOUSE"></div>
+      <div class="field"><label for="upi">UPI ID</label><input id="upi" maxlength="100" placeholder="e.g. merchant@upi" autocomplete="off" required><div class="hint">Use the UPI ID shown in your official payment app. This demo does not verify ownership.</div></div>
+      <div class="field"><label for="amount">Amount (₹)</label><input id="amount" type="number" min="1" max="1000000" step="0.01" required value="1500" inputmode="decimal"></div>
+      <div class="field"><label for="bill">Bill number</label><input id="bill" maxlength="40" value="BILL-001"></div>
+      <button class="primary" type="submit">Generate payment QR</button>
+    </form>
+  </section>
+
+  <section class="card qr-area">
+    <h2>Customer payment QR</h2>
+    <div class="pill">TEST MODE · NOT PAYMENT VERIFIED</div>
+    <div class="shop-preview" id="previewShop">SHREE SHYAM BARTAN BHANDAR AND GIFT HOUSE</div>
+    <div class="amount" id="previewAmount">₹1,500.00</div>
+    <div id="qr"><div class="placeholder">Enter your UPI ID and select “Generate payment QR”.</div></div>
+    <div class="hint" id="qrCaption">No QR generated yet.</div>
+    <div class="actions"><button class="secondary" id="downloadBtn" type="button" disabled>Save QR image</button><button class="secondary" id="shareBtn" type="button" disabled>Share QR</button></div>
+    <p class="hint">The amount is pre-filled in the UPI payment request. A customer’s UPI app may have its own behavior; this app cannot guarantee that every app will enforce the amount as unchangeable.</p>
+  </section>
+
+  <section class="card history-card">
+    <h2>Local bill history</h2>
+    <p class="hint">Generated QR records only—not proof of payment. Stored only in this browser on this device.</p>
+    <div id="history"><p class="empty">No generated QR records yet.</p></div>
+    <div class="actions"><button class="secondary" id="exportBtn" type="button">Export history CSV</button><button class="secondary" id="clearBtn" type="button">Clear history</button></div>
+  </section>
+
+  <section class="card safety-card">
+    <h2>Payment verification</h2>
+    <div class="notice"><strong>Not connected to PhonePe or any bank API.</strong> Scanning a QR or showing a screenshot does not confirm payment. Check the payment in your official merchant app/bank account before marking a bill as paid. Automatic verification requires an approved provider integration.</div>
+  </section>
+</main>
+<footer>QR Pay demo · No UPI PIN, OTP, or bank password is requested.</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const form = $('paymentForm');
+  const qrBox = $('qr');
+  const storageKey = 'qrpay-generated-records-v1';
+  let currentPayload = '';
+  let currentRecord = null;
+  let qrReady = false;
+
+  function safeHistory() {
+    try { return JSON.parse(localStorage.getItem(storageKey) || '[]'); } catch { return []; }
+  }
+  function money(value) {
+    return new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR'}).format(value);
+  }
+  function validUpi(value) {
+    // Basic format validation only; not a check that the ID exists.
+    return /^[A-Za-z0-9._-]{2,256}@[A-Za-z0-9.-]{2,64}$/.test(value);
+  }
+  function renderHistory() {
+    const list = safeHistory();
+    const box = $('history');
+    if (!list.length) { box.innerHTML = '<p class="empty">No generated QR records yet.</p>'; return; }
+    box.innerHTML = '';
+    list.slice().reverse().forEach(item => {
+      const row = document.createElement('div'); row.className = 'history-item';
+      const left = document.createElement('div');
+      const title = document.createElement('strong'); title.textContent = item.bill || 'No bill number';
+      const small = document.createElement('small'); small.textContent = item.date + ' · QR generated, not verified';
+      left.append(title, small);
+      const right = document.createElement('strong'); right.textContent = money(item.amount);
+      row.append(left,right); box.append(row);
+    });
+  }
+  function saveRecord(item) {
+    const list = safeHistory();
+    list.push(item);
+    try { localStorage.setItem(storageKey, JSON.stringify(list.slice(-300))); }
+    catch { alert('Browser storage is full. The QR is still generated, but history may not be saved.'); }
+    renderHistory();
+  }
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    const shop = $('shop').value.trim();
+    const upi = $('upi').value.trim();
+    const amount = Number($('amount').value);
+    const bill = $('bill').value.trim();
+    if (!shop) return alert('Enter the shop name.');
+    if (!validUpi(upi)) return alert('Enter a UPI ID in a format like merchant@upi. This checks format only.');
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000) return alert('Enter a valid amount between ₹1 and ₹10,00,000.');
+    const params = new URLSearchParams({pa:upi,pn:shop,am:amount.toFixed(2),cu:'INR'});
+    if (bill) params.set('tn', bill.slice(0,80));
+    currentPayload = 'upi://pay?' + params.toString();
+    currentRecord = {shop,upi,amount,bill,date:new Date().toLocaleString('en-IN'),payload:currentPayload};
+    $('previewShop').textContent = shop;
+    $('previewAmount').textContent = money(amount);
+    qrBox.innerHTML = '';
+    if (typeof QRCode === 'undefined') {
+      qrBox.innerHTML = '<div class="notice">QR library could not load. Check internet access, then reload the app.</div>';
+      $('qrCaption').textContent = 'QR not available.';
+      return;
+    }
+    new QRCode(qrBox, {text:currentPayload,width:230,height:230,colorDark:'#10251e',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    qrReady = true;
+    $('downloadBtn').disabled = false; $('shareBtn').disabled = false;
+    $('qrCaption').textContent = 'Bill ' + (bill || '—') + ' · QR generated at ' + new Date().toLocaleTimeString('en-IN');
+    saveRecord({shop,amount,bill,date:new Date().toLocaleString('en-IN')});
+  });
+  $('downloadBtn').addEventListener('click', () => {
+    if (!qrReady) return;
+    const canvas = qrBox.querySelector('canvas');
+    const img = qrBox.querySelector('img');
+    const data = canvas ? canvas.toDataURL('image/png') : (img ? img.src : null);
+    if (!data) return alert('QR image is not ready.');
+    const a = document.createElement('a'); a.href = data; a.download = 'QR-Pay-' + (currentRecord?.bill || 'payment') + '.png'; a.click();
+  });
+  $('shareBtn').addEventListener('click', async () => {
+    if (!qrReady || !currentPayload) return;
+    const text = 'Pay ' + money(currentRecord.amount) + ' to ' + currentRecord.shop + '. Bill: ' + (currentRecord.bill || '—') + '.';
+    if (navigator.share) {
+      try { await navigator.share({title:'QR Pay',text}); } catch(e) { if (e.name !== 'AbortError') alert('Sharing failed. You can save the QR image instead.'); }
+    } else {
+      try { await navigator.clipboard.writeText(text + '\nUPI payment link: ' + currentPayload); alert('Payment details copied. Save the QR image separately if needed.'); }
+      catch { alert('Sharing is not supported here. Use Save QR image.'); }
+    }
+  });
+  $('exportBtn').addEventListener('click', () => {
+    const list = safeHistory();
+    const rows = [['Date','Bill number','Shop name','Amount INR','Status'], ...list.map(x=>[x.date,x.bill,x.shop,x.amount,'QR generated - not verified'])];
+    const csv = rows.map(row=>row.map(v=>'"'+String(v ?? '').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+    const a = document.createElement('a'); a.href=url; a.download='qr-pay-history.csv'; a.click(); URL.revokeObjectURL(url);
+  });
+  $('clearBtn').addEventListener('click', () => {
+    if (confirm('Clear all locally stored QR generation records on this device?')) {
+      localStorage.removeItem(storageKey); renderHistory();
+    }
+  });
+  renderHistory();
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+})();
+</script>
+</body>
+</html>
