@@ -6,7 +6,8 @@
   <meta name="theme-color" content="#173f35">
   <meta name="description" content="QR Pay - create UPI payment QR codes for your shop.">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="icon" href="./icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
   <title>QR Pay | Shree Shyam Bartan Bhandar</title>
   <style>
     :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17231f;background:#f3f6f4}
@@ -17,6 +18,7 @@
     .card{background:white;border:1px solid #e0e8e3;border-radius:18px;padding:18px;box-shadow:0 3px 12px #173f3508}
     h2{font-size:1.08rem;margin:0 0 14px}.field{display:grid;gap:6px;margin:13px 0}
     label{font-size:.88rem;font-weight:650}input{width:100%;font:inherit;border:1px solid #cbd7d0;border-radius:11px;padding:12px;background:#fff;color:#17231f}
+    input[readonly]{background:#f0f3f1;color:#34443c;cursor:default}
     input:focus{outline:2px solid #4d9d80;outline-offset:1px}.hint{font-size:.79rem;color:#5e6d65;line-height:1.45}
     button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:13px 15px;cursor:pointer}
     .primary{background:#176b50;color:white;width:100%}.secondary{background:#e9f2ed;color:#164d3c}
@@ -45,8 +47,8 @@
   <section class="card">
     <h2>Payment details</h2>
     <form id="paymentForm">
-      <div class="field"><label for="shop">Shop name</label><input id="shop" maxlength="80" required value="SHREE SHYAM BARTAN BHANDAR AND GIFT HOUSE"></div>
-      <div class="field"><label for="upi">UPI ID</label><input id="upi" maxlength="100" value="Q083249732@ybl" placeholder="e.g. merchant@upi" autocomplete="off" required><div class="hint">Use the UPI ID shown in your official payment app. This demo does not verify ownership.</div></div>
+      <div class="field"><label for="shop">Shop name (fixed)</label><input id="shop" maxlength="80" required value="SHREE SHYAM BARTAN BHANDAR AND GIFT HOUSE" readonly aria-readonly="true"></div>
+      <div class="field"><label for="upi">UPI ID (fixed)</label><input id="upi" maxlength="100" value="Q083249732@ybl" autocomplete="off" required readonly aria-readonly="true"><div class="hint">Shop name and UPI ID are fixed in this app.</div></div>
       <div class="field"><label for="amount">Amount (₹)</label><input id="amount" type="number" min="1" max="1000000" step="0.01" required value="1500" inputmode="decimal"></div>
       <button class="primary" type="submit">Generate payment QR</button>
     </form>
@@ -57,7 +59,7 @@
     <div class="pill">TEST MODE · NOT PAYMENT VERIFIED</div>
     <div class="shop-preview" id="previewShop">SHREE SHYAM BARTAN BHANDAR AND GIFT HOUSE</div>
     <div class="amount" id="previewAmount">₹1,500.00</div>
-    <div id="qr"><div class="placeholder">Enter your UPI ID and select “Generate payment QR”.</div></div>
+    <div id="qr"><div class="placeholder">Enter an amount and select “Generate payment QR”.</div></div>
     <div class="hint" id="qrCaption">No QR generated yet.</div>
     <div class="actions"><button class="secondary" id="downloadBtn" type="button" disabled>Save QR image</button><button class="secondary" id="shareBtn" type="button" disabled>Share QR</button></div>
     <p class="hint">The amount is pre-filled in the UPI payment request. A customer’s UPI app may have its own behavior; this app cannot guarantee that every app will enforce the amount as unchangeable.</p>
@@ -82,7 +84,11 @@
   const $ = id => document.getElementById(id);
   const form = $('paymentForm');
   const qrBox = $('qr');
-  const storageKey = 'qrpay-generated-records-v1';
+  const storageKey = 'qrpay-generated-records-v2';
+  const FIXED_SHOP = 'SHREE SHYAM BARTAN BHANDAR AND GIFT HOUSE';
+  const FIXED_UPI = 'Q083249732@ybl';
+  $('shop').value = FIXED_SHOP;
+  $('upi').value = FIXED_UPI;
   let currentPayload = '';
   let currentRecord = null;
   let qrReady = false;
@@ -121,8 +127,8 @@
   }
   form.addEventListener('submit', event => {
     event.preventDefault();
-    const shop = $('shop').value.trim();
-    const upi = $('upi').value.trim();
+    const shop = FIXED_SHOP;
+    const upi = FIXED_UPI;
     const amount = Number($('amount').value);
     if (!shop) return alert('Enter the shop name.');
     if (!validUpi(upi)) return alert('Enter a UPI ID in a format like merchant@upi. This checks format only.');
