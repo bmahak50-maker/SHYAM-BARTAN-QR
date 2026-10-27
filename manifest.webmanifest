@@ -1,6 +1,6 @@
 {
-  "name": "QR Pay - Shree Shyam Bartan Bhandar",
-  "short_name": "QR Pay",
+  "name": "S.S.B.KANINA",
+  "short_name": "S.S.B.KANINA",
   "description": "Generate UPI payment QR codes with pre-filled amount.",
   "start_url": "./index.html",
   "scope": "./",

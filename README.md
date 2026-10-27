@@ -1,4 +1,4 @@
-# QR Pay — updated PWA files
+# S.S.B.KANINA — updated PWA files
 
 Fixed shop name: SHREE SHYAM BARTAN BHANDAR AND GIFT HOUSE
 Fixed UPI ID: Q083249732@ybl
