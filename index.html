@@ -46,9 +46,8 @@
     <h2>Payment details</h2>
     <form id="paymentForm">
       <div class="field"><label for="shop">Shop name</label><input id="shop" maxlength="80" required value="SHREE SHYAM BARTAN BHANDAR AND GIFT HOUSE"></div>
-      <div class="field"><label for="upi">UPI ID</label><input id="upi" maxlength="100" placeholder="e.g. merchant@upi" autocomplete="off" required><div class="hint">Use the UPI ID shown in your official payment app. This demo does not verify ownership.</div></div>
+      <div class="field"><label for="upi">UPI ID</label><input id="upi" maxlength="100" value="Q083249732@ybl" placeholder="e.g. merchant@upi" autocomplete="off" required><div class="hint">Use the UPI ID shown in your official payment app. This demo does not verify ownership.</div></div>
       <div class="field"><label for="amount">Amount (₹)</label><input id="amount" type="number" min="1" max="1000000" step="0.01" required value="1500" inputmode="decimal"></div>
-      <div class="field"><label for="bill">Bill number</label><input id="bill" maxlength="40" value="BILL-001"></div>
       <button class="primary" type="submit">Generate payment QR</button>
     </form>
   </section>
@@ -77,7 +76,7 @@
   </section>
 </main>
 <footer>QR Pay demo · No UPI PIN, OTP, or bank password is requested.</footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
@@ -106,7 +105,7 @@
     list.slice().reverse().forEach(item => {
       const row = document.createElement('div'); row.className = 'history-item';
       const left = document.createElement('div');
-      const title = document.createElement('strong'); title.textContent = item.bill || 'No bill number';
+      const title = document.createElement('strong'); title.textContent = item.shop || 'QR generated';
       const small = document.createElement('small'); small.textContent = item.date + ' · QR generated, not verified';
       left.append(title, small);
       const right = document.createElement('strong'); right.textContent = money(item.amount);
@@ -125,14 +124,12 @@
     const shop = $('shop').value.trim();
     const upi = $('upi').value.trim();
     const amount = Number($('amount').value);
-    const bill = $('bill').value.trim();
     if (!shop) return alert('Enter the shop name.');
     if (!validUpi(upi)) return alert('Enter a UPI ID in a format like merchant@upi. This checks format only.');
     if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000) return alert('Enter a valid amount between ₹1 and ₹10,00,000.');
     const params = new URLSearchParams({pa:upi,pn:shop,am:amount.toFixed(2),cu:'INR'});
-    if (bill) params.set('tn', bill.slice(0,80));
     currentPayload = 'upi://pay?' + params.toString();
-    currentRecord = {shop,upi,amount,bill,date:new Date().toLocaleString('en-IN'),payload:currentPayload};
+    currentRecord = {shop,upi,amount,date:new Date().toLocaleString('en-IN'),payload:currentPayload};
     $('previewShop').textContent = shop;
     $('previewAmount').textContent = money(amount);
     qrBox.innerHTML = '';
@@ -144,8 +141,8 @@
     new QRCode(qrBox, {text:currentPayload,width:230,height:230,colorDark:'#10251e',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
     qrReady = true;
     $('downloadBtn').disabled = false; $('shareBtn').disabled = false;
-    $('qrCaption').textContent = 'Bill ' + (bill || '—') + ' · QR generated at ' + new Date().toLocaleTimeString('en-IN');
-    saveRecord({shop,amount,bill,date:new Date().toLocaleString('en-IN')});
+    $('qrCaption').textContent = 'QR generated at ' + new Date().toLocaleTimeString('en-IN');
+    saveRecord({shop,amount,date:new Date().toLocaleString('en-IN')});
   });
   $('downloadBtn').addEventListener('click', () => {
     if (!qrReady) return;
@@ -153,11 +150,11 @@
     const img = qrBox.querySelector('img');
     const data = canvas ? canvas.toDataURL('image/png') : (img ? img.src : null);
     if (!data) return alert('QR image is not ready.');
-    const a = document.createElement('a'); a.href = data; a.download = 'QR-Pay-' + (currentRecord?.bill || 'payment') + '.png'; a.click();
+    const a = document.createElement('a'); a.href = data; a.download = 'QR-Pay-payment.png'; a.click();
   });
   $('shareBtn').addEventListener('click', async () => {
     if (!qrReady || !currentPayload) return;
-    const text = 'Pay ' + money(currentRecord.amount) + ' to ' + currentRecord.shop + '. Bill: ' + (currentRecord.bill || '—') + '.';
+    const text = 'Pay ' + money(currentRecord.amount) + ' to ' + currentRecord.shop + '.';
     if (navigator.share) {
       try { await navigator.share({title:'QR Pay',text}); } catch(e) { if (e.name !== 'AbortError') alert('Sharing failed. You can save the QR image instead.'); }
     } else {
@@ -167,7 +164,7 @@
   });
   $('exportBtn').addEventListener('click', () => {
     const list = safeHistory();
-    const rows = [['Date','Bill number','Shop name','Amount INR','Status'], ...list.map(x=>[x.date,x.bill,x.shop,x.amount,'QR generated - not verified'])];
+    const rows = [['Date','Shop name','Amount INR','Status'], ...list.map(x=>[x.date,x.shop,x.amount,'QR generated - not verified'])];
     const csv = rows.map(row=>row.map(v=>'"'+String(v ?? '').replace(/"/g,'""')+'"').join(',')).join('\r\n');
     const url = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
     const a = document.createElement('a'); a.href=url; a.download='qr-pay-history.csv'; a.click(); URL.revokeObjectURL(url);
